@@ -160,7 +160,6 @@ def evaluate_random_search_agent():
     plt.ylabel('Frequency')
 
     plt.savefig('RandomSearchEval.png')
-    plt.show()
 
 
 parser = argparse.ArgumentParser(description='Choose simulation scheme')
