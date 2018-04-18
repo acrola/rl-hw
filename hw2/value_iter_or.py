@@ -135,26 +135,3 @@ for (V, pi) in zip(Vs_VI[:10], pis_VI[:10]):
                      color='g', size=12,  verticalalignment='center',
                      horizontalalignment='center', fontweight='bold')
     plt.grid(color='b', lw=2, ls='-')
-
-
-(V, pi) = Vs_VI[19], pis_VI[19]
-plt.figure(figsize=(3,3))
-plt.imshow(V.reshape(4,4), cmap='gray', interpolation='none', clim=(0,1))
-ax = plt.gca()
-ax.set_xticks(np.arange(4)-.5)
-ax.set_yticks(np.arange(4)-.5)
-ax.set_xticklabels([])
-ax.set_yticklabels([])
-Y, X = np.mgrid[0:4, 0:4]
-a2uv = {0: (-1, 0), 1:(0, -1), 2:(1,0), 3:(0, 1)}
-Pi = pi.reshape(4,4)
-for y in range(4):
-    for x in range(4):
-        a = Pi[y, x]
-        u, v = a2uv[a]
-        plt.arrow(x, y,u*.3, -v*.3, color='m', head_width=0.1, head_length=0.1)
-        plt.text(x, y, str(env.desc[y,x].item().decode()),
-                 color='g', size=12,  verticalalignment='center',
-                 horizontalalignment='center', fontweight='bold')
-plt.grid(color='b', lw=2, ls='-')
-plt.savefig('last_step')
