@@ -97,9 +97,6 @@ def value_iteration(mdp, gamma, nIt):
             V[state] = np.max(actionVal)
             pi[state] = actions[np.argmax(actionVal)]
 
-        Vs.append(V)
-        pis.append(pi)
-
         max_diff = np.abs(V - Vprev).max()
         nChgActions="N/A" if oldpi is None else (pi != oldpi).sum()
         print("%4i      | %6.5f      | %4s          | %5.3f"%(it, max_diff, nChgActions, V[0]))
