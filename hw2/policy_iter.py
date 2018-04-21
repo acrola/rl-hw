@@ -60,17 +60,17 @@ print("")
 def compute_vpi(pi, mdp, gamma):
     # use pi[state] to access the action that's prescribed by this policy
 
-    A = np.identity(mdp.nS) * -1  # Body of value func matrix
+    A = np.identity(mdp.nS)  # Body of value func matrix
     b = np.zeros(mdp.nS)
 
-    for state, state_idx in enumerate(mdp.P.keys()):
+    for state in mdp.P.keys():
         action = pi[state]
         for outcome in mdp.P[state][action]:
             prob = outcome[0]
             nextState = outcome[1]
             reward = outcome[2]
-            A[state, nextState] += prob * gamma
-            b[state] -= prob * reward
+            A[state, nextState] -= prob * gamma
+            b[state] += prob * reward
 
     V = np.linalg.solve(A, b)
 
@@ -111,8 +111,6 @@ def policy_iteration(mdp, gamma, nIt):
     print("Iteration | # chg actions | V[0]")
     print("----------+---------------+---------")
     for it in range(nIt):
-        # YOUR CODE HERE
-        # you need to compute qpi which is the state-action values for current pi
         vpi = compute_vpi(pi_prev, mdp, gamma)
         qpi = compute_qpi(vpi, mdp, gamma)
         pi = qpi.argmax(axis=1)
