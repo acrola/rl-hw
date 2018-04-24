@@ -123,3 +123,5 @@ def policy_iteration(mdp, gamma, nIt):
 
 Vs_PI, pis_PI = policy_iteration(mdp, gamma=0.95, nIt=20)
 plt.plot(Vs_PI);
+img_save = 'Q2 - Policy Iteration (i)'
+plt.savefig(img_save)

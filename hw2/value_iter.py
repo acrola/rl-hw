@@ -82,32 +82,21 @@ def value_iteration(mdp, gamma, nIt):
         # V: bellman backup on Vprev
         #     corresponding to the math above: V^{(it+1)} = T[V^{(it)}]
         #     ** numpy array of floats **
-        def calc_act(x):
-            val = 0
-            for trans in x:
-                val += trans[0] * (trans[2] + Vprev[trans[1]])
-            return val
-        # vfunc = np.vectorize(calc_act)
-        # probs = np.array([mdp.P[s][a] for s in range(env.nS) for a in range(env.nA)]).reshape((16,4))
 
-
-        pi = np.zeros(mdp.nS, dtype='int')
         V = np.zeros(mdp.nS)
-        for s in range(mdp.nS):
-            maxvsa = -1
-            maxa = -1
-            for a in range(mdp.nA):
-                vsa = 0
-                for possible_next_state in mdp.P[s][a]:
-                    prob_action = possible_next_state[0]
-                    cur_reward = possible_next_state[2]
-                    future_reward = gamma * Vprev[possible_next_state[1]]
-                    vsa += prob_action * (cur_reward + future_reward)
-                if vsa > maxvsa:
-                    maxvsa = vsa
-                    maxa = a
-            pi[s] = maxa
-            V[s] = maxvsa
+        pi = np.zeros(mdp.nS, dtype='int')
+
+        for state in mdp.P.keys():
+            actions = np.asarray(list(mdp.P[state].keys()), dtype=tuple)
+            outcomes = np.asarray(list(mdp.P[state].values()), dtype=tuple)
+            probs = outcomes[:, :, 0]
+            nextStates = outcomes[:, :, 1]
+            rewards = outcomes[:, :, 2]
+            stateVals = probs * (rewards + gamma * Vprev[nextStates.astype(int)])
+            actionVal = np.sum(stateVals, axis=1)
+            V[state] = np.max(actionVal)
+            pi[state] = actions[np.argmax(actionVal)]
+
         max_diff = np.abs(V - Vprev).max()
         nChgActions="N/A" if oldpi is None else (pi != oldpi).sum()
         print("%4i      | %6.5f      | %4s          | %5.3f"%(it, max_diff, nChgActions, V[0]))
@@ -143,3 +132,20 @@ for (V, pi) in zip(Vs_VI[:10], pis_VI[:10]):
                      color='g', size=12,  verticalalignment='center',
                      horizontalalignment='center', fontweight='bold')
     plt.grid(color='b', lw=2, ls='-')
+img_save = 'Q1 - Value Iteration (i)'
+plt.savefig(img_save)
+# plot of (ii)
+iters = np.arange(20)
+plt.figure()
+cols = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w', 'C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']
+import random
+for i in range(mdp.nS):
+    to_plot = np.array(Vs_VI)[1:,i]
+    col = random.choice(cols)
+    cols.remove(col)
+    plt.plot(iters, to_plot, col, linewidth=0.6)
+plt.xlabel('Iteration')
+plt.ylabel('Value')
+plt.title('Value vs. Iteration')
+img_save = 'Q1 - Value Iteration (ii)'
+plt.savefig(img_save)
