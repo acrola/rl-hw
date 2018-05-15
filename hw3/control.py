@@ -248,12 +248,19 @@ while consecutive_no_learning_trials < NO_LEARNING_THRESHOLD:
 
         ###### BEGIN YOUR CODE ######
 
+        V_prev = V
+
         R_repeated = np.tile(R, reps=(NUM_STATES, NUM_ACTIONS, 1))
-        V_prev_repeated = np.tile(V, reps=(NUM_STATES, NUM_ACTIONS, 1))
+        V_prev_repeated = np.tile(V_prev, reps=(NUM_STATES, NUM_ACTIONS, 1))
         stateVals = T * (R_repeated + GAMMA * V_prev_repeated)
         actionVal = np.sum(stateVals, axis=2)
         V = np.max(actionVal, axis=1)
         pi = np.argmax(actionVal, axis=1)
+
+        if np.max(np.abs(V_prev - V)) < TOLERANCE:
+            consecutive_no_learning_trials += 1
+        else:
+            consecutive_no_learning_trials = 0
 
         ###### END YOUR CODE ######
 
