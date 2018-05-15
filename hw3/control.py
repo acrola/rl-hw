@@ -137,8 +137,22 @@ state = cart_pole.get_state(state_tuple)
 # Initialize all state rewards to zero.
 
 ###### BEGIN YOUR CODE ######
-# TODO:
-raise NotImplementedError('Initializations not implemented')
+
+# Value function
+V = np.random.uniform(0.0, 0.10, NUM_STATES)
+pi = np.zeros(NUM_STATES, dtype='int')
+
+# State transitions
+T = np.full(shape=(NUM_STATES, NUM_ACTIONS, NUM_STATES), fill_value=1/NUM_STATES)
+
+# State rewards
+R = np.zeros(NUM_STATES)
+
+# Observations
+count_transitions = np.zeros(shape=(NUM_STATES, NUM_ACTIONS, NUM_STATES))
+count_rewards = np.zeros(NUM_STATES)
+count_state_reached = np.zeros(NUM_STATES)
+
 ###### END YOUR CODE ######
 
 # This is the criterion to end the simulation.
@@ -158,9 +172,7 @@ while consecutive_no_learning_trials < NO_LEARNING_THRESHOLD:
     # optimal according to the current value function, and the current MDP
     # model.
     ###### BEGIN YOUR CODE ######
-    # TODO:
-    # raise NotImplementedError('Action choice not implemented')
-    # action = 0 if np.random.uniform() < 0.5 else 1
+    action = pi[state]
     ###### END YOUR CODE ######
 
     # Get the next state by simulating the dynamics
@@ -190,11 +202,14 @@ while consecutive_no_learning_trials < NO_LEARNING_THRESHOLD:
     # pole falls (the next if block)!
 
     ###### BEGIN YOUR CODE ######
-    # TODO:
-    raise NotImplementedError('Update T and R not implemented')
+
     # record the number of times `state, action, new_state` occurs
     # record the rewards for every `new_state`
     # record the number of time `new_state` was reached
+    count_transitions[state, action, new_state] += 1
+    count_rewards[new_state] += R
+    count_state_reached[new_state] += 1
+
     ###### END YOUR CODE ######
 
     # Recompute MDP model whenever pole falls
@@ -209,8 +224,20 @@ while consecutive_no_learning_trials < NO_LEARNING_THRESHOLD:
         # initialized uniform distribution).
 
         ###### BEGIN YOUR CODE ######
-        # TODO:
-        raise NotImplementedError('MDP  T and R update not implemented')
+
+        visited_state_actions = np.count_nonzero(count_transitions, axis=2) > 0
+
+        for state in range(NUM_STATES):
+            if count_state_reached[state] == 0:
+                continue
+
+            for action in range(NUM_ACTIONS):
+                if visited_state_actions[state, action]:
+                    T[state, action] = count_transitions[state, action] / np.sum(count_transitions[state, action])
+
+        # Average only for states that have been reached
+        R = np.divide(count_rewards, count_state_reached, out=np.zeros_like(count_rewards), where=count_state_reached!=0)
+
         ###### END YOUR CODE ######
 
         # Perform value iteration using the new estimated model for the MDP.
@@ -220,8 +247,14 @@ while consecutive_no_learning_trials < NO_LEARNING_THRESHOLD:
         # variable that checks when the whole simulation must end.
 
         ###### BEGIN YOUR CODE ######
-        # TODO:
-        raise NotImplementedError('Value iteration choice not implemented')
+
+        R_repeated = np.tile(R, reps=(NUM_STATES, NUM_ACTIONS, 1))
+        V_prev_repeated = np.tile(V, reps=(NUM_STATES, NUM_ACTIONS, 1))
+        stateVals = T * (R_repeated + GAMMA * V_prev_repeated)
+        actionVal = np.sum(stateVals, axis=2)
+        V = np.max(actionVal, axis=1)
+        pi = np.argmax(actionVal, axis=1)
+
         ###### END YOUR CODE ######
 
     # Do NOT change this code: Controls the simulation, and handles the case
