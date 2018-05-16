@@ -14,14 +14,18 @@ num_episodes = 2000
 # create lists to contain total rewards and steps per episode
 # jList = []
 rList = []
+goal_count = 0
 for i in range(num_episodes):
     # Reset environment and get first new observation
     s = env.reset()
     rAll = 0  # Total reward during current episode
     d = False
     j = 0
+    # epsilon = 1 / (i + 1)
+    epsilon = 1
+
     # The Q-Table learning algorithm
-    while j < 99:
+    while j < 99 and not d:
         j += 1
         # TODO: Implement Q-Learning
         # 1. Choose an action by greedily (with noise) picking from Q table
@@ -30,9 +34,23 @@ for i in range(num_episodes):
         # 4. Update total reward
         # 5. Update episode if we reached the Goal State
 
+        if np.random.rand() < epsilon:
+            action = env.action_space.sample()
+        else:
+            action = np.argmax(Q[s])
+
+        next_s, reward, d, _ = env.step(action)
+        Q[s, action] += lr * (reward + y * np.max(Q[next_s]) - Q[s, action])
+        s = next_s
+        rAll += reward
+
+    if rAll > 0:
+        goal_count += 1
+        epsilon = 1./((goal_count/50) + 10)
+
     rList.append(rAll)
 
 # Reports
 print("Score over time: " + str(sum(rList) / num_episodes))
 print("Final Q-Table Values")
-print Q
+print(Q)
