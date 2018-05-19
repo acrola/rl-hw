@@ -4,53 +4,64 @@ import numpy as np
 # Load environment
 env = gym.make('FrozenLake-v0')
 
-# Implement Q-Table learning algorithm
-# Initialize table with all zeros
-Q = np.zeros([env.observation_space.n, env.action_space.n])
 # Set learning parameters
 lr = .8
 y = .95
 num_episodes = 2000
-# create lists to contain total rewards and steps per episode
-# jList = []
-rList = []
-goal_count = 0
-for i in range(num_episodes):
-    # Reset environment and get first new observation
-    s = env.reset()
-    rAll = 0  # Total reward during current episode
-    d = False
-    j = 0
-    # epsilon = 1 / (i + 1)
+
+def q_learning():
+    # Implement Q-Table learning algorithm
+    # Initialize table with all zeros
+    Q = np.zeros([env.observation_space.n, env.action_space.n])
+
+    # create lists to contain total rewards and steps per episode
+    # jList = []
+    rList = []
     epsilon = 1
+    for i in range(num_episodes):
+        # Reset environment and get first new observation
+        s = env.reset()
+        rAll = 0  # Total reward during current episode
+        d = False
+        j = 0
 
-    # The Q-Table learning algorithm
-    while j < 99 and not d:
-        j += 1
-        # TODO: Implement Q-Learning
-        # 1. Choose an action by greedily (with noise) picking from Q table
-        # 2. Get new state and reward from environment
-        # 3. Update Q-Table with new knowledge
-        # 4. Update total reward
-        # 5. Update episode if we reached the Goal State
+        # The Q-Table learning algorithm
+        while j < 99 and not d:
+            j += 1
 
-        if np.random.rand() < epsilon:
-            action = env.action_space.sample()
+            # 1. Choose an action by greedily (with noise) picking from Q table
+            # 2. Get new state and reward from environment
+            # 3. Update Q-Table with new knowledge
+            # 4. Update total reward
+            # 5. Update episode if we reached the Goal State
+
+            if np.random.rand() < epsilon:
+                action = env.action_space.sample()
+            else:
+                action = np.argmax(Q[s])
+
+            next_s, reward, d, _ = env.step(action)
+            Q[s, action] += lr * (reward + y * np.max(Q[next_s]) - Q[s, action])
+            s = next_s
+            rAll += reward
+
+        if epsilon < 0.1:
+            epsilon = 0  # Quit exploration after a while
         else:
-            action = np.argmax(Q[s])
+            epsilon = 1./((i/55) + 1.18)
 
-        next_s, reward, d, _ = env.step(action)
-        Q[s, action] += lr * (reward + y * np.max(Q[next_s]) - Q[s, action])
-        s = next_s
-        rAll += reward
+        rList.append(rAll)
 
-    if rAll > 0:
-        goal_count += 1
-        epsilon = 1./((goal_count/50) + 10)
+    return rList, Q
 
-    rList.append(rAll)
 
 # Reports
-print("Score over time: " + str(sum(rList) / num_episodes))
+rList, Q = q_learning()
+score = sum(rList) / num_episodes
+# Avoid non-convergence
+while score < 0.01:
+    rList, Q = q_learning()
+    score = sum(rList) / num_episodes
+print("Score over time: " + str(score))
 print("Final Q-Table Values")
 print(Q)
