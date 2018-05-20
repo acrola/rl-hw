@@ -13,7 +13,7 @@ env = gym.make('FrozenLake-v0')
 def to_one_hot(state):
     one_hot = torch.zeros([1, env.observation_space.n])
     one_hot[0, state] = 1
-    return Variable(one_hot, requires_grad=False)
+    return Variable(one_hot)
 
 # Define the neural network mapping 16x1 one hot vector to a vector of 4 Q values
 # and training loss
@@ -31,7 +31,7 @@ class SQN(nn.Module):
         return out
 
 
-q_net = SQN(input_size=env.observation_space.n, output_size=env.action_space.n, hidden_layer_size=10)
+q_net = SQN(input_size=env.observation_space.n, output_size=env.action_space.n, hidden_layer_size=16)
 criterion = nn.MSELoss()
 optimizer = torch.optim.SGD(q_net.parameters(), lr=0.1)
 
@@ -39,7 +39,7 @@ optimizer = torch.optim.SGD(q_net.parameters(), lr=0.1)
 
 # Set learning parameters
 y = .99
-e = 0.1
+e = 1
 num_episodes = 2000
 # create lists to contain total rewards and steps per episode
 jList = []
@@ -72,12 +72,12 @@ for i in range(num_episodes):
 
         # 5. Obtain maxQ' and set our target value for chosen action using the bellman equation.
         maxQ1 = torch.max(Q1).data[0]
-        Qtarget = Q.data
+        Qtarget = Q.data.clone()
         Qtarget[0, a] = r + y * maxQ1
         Qtarget = Variable(Qtarget, requires_grad=False)
 
         # 6. Train the network using target and predicted Q values (model.zero(), forward, backward, optim.step)
-        q_net.zero_grad()
+        optimizer.zero_grad()
         loss = criterion(Q, Qtarget)
         loss.backward()
         optimizer.step()
@@ -86,7 +86,7 @@ for i in range(num_episodes):
         s = s1
         if d == True:
             #Reduce chance of random action as we train the model.
-            e = 1./((i/50) + 10)
+            e = 1. / ((i / 55) + 1.18)
             break
     jList.append(j)
     rList.append(rAll)
