@@ -23,7 +23,7 @@ class SQN(nn.Module):
     def __init__(self, input_size, output_size):
         super(SQN, self).__init__()
         self.fc1 = nn.Linear(input_size, output_size, bias=False)
-        nn.init.uniform(self.fc1.weight, 0, 0.01)
+        # nn.init.uniform(self.fc1.weight, 0, 0.01)
 
     def forward(self, x):
         return self.fc1(x)
