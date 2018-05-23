@@ -31,7 +31,7 @@ class SQN(nn.Module):
 
 q_net = SQN(input_size=env.observation_space.n, output_size=env.action_space.n)
 criterion = nn.MSELoss()
-optimizer = torch.optim.SGD(q_net.parameters(), lr=0.1)
+optimizer = torch.optim.SGD(q_net.parameters(), lr=0.5)
 
 # Implement Q-Network learning algorithm
 
