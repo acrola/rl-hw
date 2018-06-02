@@ -213,6 +213,10 @@ def dqn_learing(
             # next observations, and done indicator).
             # Note: Move the variables to the GPU if avialable
                     obs_batch, act_batch, rew_batch, next_obs_batch, done_mask = replay_buffer.sample(batch_size)
+                    act_batch = torch.from_numpy(act_batch)
+                    rew_batch = torch.from_numpy(rew_batch)
+                    next_obs_batch = torch.from_numpy(next_obs_batch)
+                    done_mask = torch.from_numpy(done_mask)
                     if USE_CUDA:
                         obs_batch.cuda()
                         act_batch.cuda()
@@ -220,7 +224,7 @@ def dqn_learing(
                         next_obs_batch.cuda()
                         done_mask.cuda()
                     Q_output = Q(obs_batch)
-                    _, Qtarget_output = torch.max(Q(obs_batch), dim=1)
+                    _, Qtarget_output = torch.max(Qtarget(obs_batch), dim=1)
 
         # 3.b: fill in your own code to compute the Bellman error. This requires
             # evaluating the current and next Q-values and constructing the corresponding error.
