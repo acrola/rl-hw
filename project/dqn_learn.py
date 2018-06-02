@@ -117,7 +117,9 @@ def dqn_learing(
         if sample > eps_threshold:
             obs = torch.from_numpy(obs).type(dtype).unsqueeze(0) / 255.0
             # Use colatile = True if variable is only used in inference mode, i.e. don't save the history
-            return model(Variable(obs, volatile=True)).data.max(1)[1].cpu()
+            with torch.no_grad():
+                a = model(Variable(obs)).data.max(1).cpu()
+            return a
         else:
             return torch.IntTensor([[random.randrange(num_actions)]])
 
@@ -127,6 +129,9 @@ def dqn_learing(
     # YOUR CODE HERE
     Q = DQN()
     Qtarget = DQN()
+    if USE_CUDA:
+        Q.cuda()
+        Qtarget.cuda()
     ######
 
 
@@ -182,9 +187,8 @@ def dqn_learing(
         #####
         frm_idx = replay_buffer.store_frame(last_obs)
         last_obs_encoded = replay_buffer.encode_recent_observation()
-        action = select_epilson_greedy_action(Q, last_obs_encoded)
-
-        last_obs, reward, done, info = env.step(action)
+        action = select_epilson_greedy_action(Q, last_obs_encoded, t)
+        last_obs, reward, done, info = env.step(action.item())
         if done:
             last_obs = env.reset()
         replay_buffer.store_effect(frm_idx, action, reward, done)
