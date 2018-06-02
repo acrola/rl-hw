@@ -3,7 +3,6 @@
 """
 import sys
 import pickle
-from twisted.internet.test._posixifaces import in6_addr
 
 import numpy as np
 from collections import namedtuple
