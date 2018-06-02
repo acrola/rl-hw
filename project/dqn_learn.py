@@ -118,7 +118,7 @@ def dqn_learing(
             obs = torch.from_numpy(obs).type(dtype).unsqueeze(0) / 255.0
             # Use colatile = True if variable is only used in inference mode, i.e. don't save the history
             with torch.no_grad():
-                a = model(Variable(obs)).data.max(1).cpu()
+                a = model(Variable(obs)).data.max(1)[1].unsqueeze(dim=0)
             return a
         else:
             return torch.IntTensor([[random.randrange(num_actions)]])
@@ -127,8 +127,8 @@ def dqn_learing(
     ######
 
     # YOUR CODE HERE
-    Q = DQN()
-    Qtarget = DQN()
+    Q = DQN(in_channle=frame_history_len, num_actions=env.action_space)
+    Qtarget = DQN(in_channle=frame_history_len, num_actions=env.action_space)
     if USE_CUDA:
         Q.cuda()
         Qtarget.cuda()
