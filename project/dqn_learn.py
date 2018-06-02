@@ -3,6 +3,8 @@
 """
 import sys
 import pickle
+from twisted.internet.test._posixifaces import in6_addr
+
 import numpy as np
 from collections import namedtuple
 from itertools import count
@@ -16,7 +18,7 @@ import torch.autograd as autograd
 
 from utils.replay_buffer import ReplayBuffer
 from utils.gym import get_wrapper_by_name
-
+from dqn_model import DQN
 USE_CUDA = torch.cuda.is_available()
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
@@ -124,7 +126,8 @@ def dqn_learing(
     ######
 
     # YOUR CODE HERE
-
+    Q = DQN()
+    Qtarget = DQN()
     ######
 
 
@@ -178,8 +181,14 @@ def dqn_learing(
         # may not yet have been initialized (but of course, the first step
         # might as well be random, since you haven't trained your net...)
         #####
+        frm_idx = replay_buffer.store_frame(last_obs)
+        last_obs_encoded = replay_buffer.encode_recent_observation()
+        action = select_epilson_greedy_action(Q, last_obs_encoded)
 
-        # YOUR CODE HERE
+        last_obs, reward, done, info = env.step(action)
+        if done:
+            last_obs = env.reset()
+        replay_buffer.store_effect(frm_idx, action, reward, done)
 
         #####
 
@@ -200,10 +209,21 @@ def dqn_learing(
             # should consist of current observations, current actions, rewards,
             # next observations, and done indicator).
             # Note: Move the variables to the GPU if avialable
-            # 3.b: fill in your own code to compute the Bellman error. This requires
+                    obs_batch, act_batch, rew_batch, next_obs_batch, done_mask = replay_buffer.sample(batch_size)
+                    if USE_CUDA:
+                        obs_batch.cuda()
+                        act_batch.cuda()
+                        rew_batch.cuda()
+                        next_obs_batch.cuda()
+                        done_mask.cuda()
+                    Q_output = Q(obs_batch)
+                    _, Qtarget_output = torch.max(Q(obs_batch), dim=1)
+
+        # 3.b: fill in your own code to compute the Bellman error. This requires
             # evaluating the current and next Q-values and constructing the corresponding error.
             # Note: don't forget to clip the error between [-1,1], multiply is by -1 (since pytorch minimizes) and
             #       maskout post terminal status Q-values (see ReplayBuffer code).
+
             # 3.c: train the model. To do this, use the bellman error you calculated perviously.
             # Pytorch will differentiate this error for you, to backward the error use the following API:
             #       current.backward(d_error.data.unsqueeze(1))
