@@ -127,8 +127,8 @@ def dqn_learing(
     ######
 
     # YOUR CODE HERE
-    Q = DQN(in_channels=frame_history_len, num_actions=env.action_space.n)
-    Qtarget = DQN(in_channels=frame_history_len, num_actions=env.action_space.n)
+    Q = q_func(in_channels=frame_history_len, num_actions=env.action_space.n)
+    Qtarget = q_func(in_channels=frame_history_len, num_actions=env.action_space.n)
     if USE_CUDA:
         Q.cuda()
         Qtarget.cuda()
