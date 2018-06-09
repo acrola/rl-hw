@@ -129,9 +129,6 @@ def dqn_learing(
     # YOUR CODE HERE
     Q = q_func(in_channels=input_arg, num_actions=num_actions).type(dtype)
     Qtarget = q_func(in_channels=input_arg, num_actions=num_actions).type(dtype)
-    if USE_CUDA:
-        Q.cuda()
-        Qtarget.cuda()
     ######
 
 
@@ -187,7 +184,7 @@ def dqn_learing(
         #####
         frm_idx = replay_buffer.store_frame(last_obs)
         last_obs_encoded = replay_buffer.encode_recent_observation()
-        action = select_epilson_greedy_action(Q, last_obs_encoded, t)[0, 0]
+        action = select_epilson_greedy_action(Q, last_obs_encoded, t).squeeze()
         last_obs, reward, done, info = env.step(action.item())
         if done:
             last_obs = env.reset()
@@ -219,8 +216,8 @@ def dqn_learing(
             next_obs_batch = Variable(torch.from_numpy(next_obs_batch).type(dtype) /255.0)
             done_mask = Variable(torch.from_numpy(done_mask).type(dtype))
             if USE_CUDA:
-                act_batch.cuda()
-                rew_batch.cuda()
+                act_batch = act_batch.cuda()
+                rew_batch = rew_batch.cuda()
             # Q_output = Q(obs_batch)
             # _, Qtarget_output = torch.max(Qtarget(obs_batch), dim=1)
 
@@ -228,9 +225,9 @@ def dqn_learing(
             # evaluating the current and next Q-values and constructing the corresponding error.
             # Note: don't forget to clip the error between [-1,1], multiply is by -1 (since pytorch minimizes) and
             #       maskout post terminal status Q-values (see ReplayBuffer code).
-            current_Q_values = Q(obs_batch).gather(1, act_batch.unsqueeze(1))
+            current_Q_values = Q(obs_batch).gather(dim=1, index=act_batch.unsqueeze(1))
             next_max_q = Qtarget(next_obs_batch).detach().max(1)[0]
-            next_Q_values = next_max_q if not done_mask else 0
+            next_Q_values = next_max_q * (1.0 - done_mask)
             target_Q_values = rew_batch + (gamma * next_Q_values)
             bellman_error = target_Q_values - current_Q_values
             clipped_bellman_error = -1.0*bellman_error.clamp(-1, 1)
