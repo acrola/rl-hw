@@ -3,6 +3,7 @@
 """
 import sys
 import pickle
+import os
 
 import numpy as np
 from collections import namedtuple
@@ -51,7 +52,8 @@ def dqn_learing(
     learning_starts=50000,
     learning_freq=4,
     frame_history_len=4,
-    target_update_freq=10000
+    target_update_freq=10000,
+    models_path='models'
     ):
 
     """Run Deep Q-learning algorithm.
@@ -131,7 +133,6 @@ def dqn_learing(
     Qtarget = q_func(in_channels=input_arg, num_actions=num_actions).type(dtype)
     ######
 
-
     # Construct Q network optimizer function
     optimizer = optimizer_spec.constructor(Q.parameters(), **optimizer_spec.kwargs)
 
@@ -146,6 +147,11 @@ def dqn_learing(
     best_mean_episode_reward = -float('inf')
     last_obs = env.reset()
     LOG_EVERY_N_STEPS = 10000
+    # STORE_EVERY_N_STEPS = 250000
+    STORE_EVERY_N_STEPS = 300
+
+    if not os.path.exists(models_path):
+        os.mkdir(models_path)
 
     for t in count():
         ### 1. Check stopping criterion
@@ -261,6 +267,10 @@ def dqn_learing(
             mean_episode_reward = np.mean(episode_rewards[-100:])
         if len(episode_rewards) > 100:
             best_mean_episode_reward = max(best_mean_episode_reward, mean_episode_reward)
+
+        if t % STORE_EVERY_N_STEPS == 0 and t > 0:
+            q_output_path = models_path + os.sep + 'DQN_' + str(t) + '_steps'
+            torch.save(Q, q_output_path)
 
         Statistic["mean_episode_rewards"].append(mean_episode_reward)
         Statistic["best_mean_episode_rewards"].append(best_mean_episode_reward)

@@ -1,5 +1,6 @@
 import gym
 import torch.optim as optim
+import argparse
 
 from dqn_model import DQN
 from dqn_learn import OptimizerSpec, dqn_learing
@@ -17,6 +18,7 @@ TARGER_UPDATE_FREQ = 10000
 LEARNING_RATE = 0.00025
 ALPHA = 0.95
 EPS = 0.01
+MODELS_PATH = 'models'
 
 def main(env, num_timesteps):
 
@@ -45,6 +47,7 @@ def main(env, num_timesteps):
         learning_freq=LEARNING_FREQ,
         frame_history_len=FRAME_HISTORY_LEN,
         target_update_freq=TARGER_UPDATE_FREQ,
+        models_path=MODELS_PATH
     )
 
 if __name__ == '__main__':
