@@ -229,8 +229,8 @@ def dqn_learing(
             next_max_q = Qtarget(next_obs_batch).detach().max(1)[0]
             next_Q_values = next_max_q * (1.0 - done_mask)
             target_Q_values = rew_batch + (gamma * next_Q_values)
-            bellman_error = target_Q_values - current_Q_values
-            clipped_bellman_error = -1.0*bellman_error.clamp(-1, 1)
+            bellman_error = target_Q_values - current_Q_values.squeeze()
+            clipped_bellman_error = -1.0*bellman_error.clamp(min=-1, max=1)
 
 
                         # 3.c: train the model. To do this, use the bellman error you calculated perviously.
