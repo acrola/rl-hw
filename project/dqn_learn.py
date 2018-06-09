@@ -127,8 +127,8 @@ def dqn_learing(
     ######
 
     # YOUR CODE HERE
-    Q = q_func(in_channels=frame_history_len, num_actions=env.action_space.n)
-    Qtarget = q_func(in_channels=frame_history_len, num_actions=env.action_space.n)
+    Q = q_func(in_channels=frame_history_len, num_actions=env.action_space.n).type(dtype)
+    Qtarget = q_func(in_channels=frame_history_len, num_actions=env.action_space.n).type(dtype)
     if USE_CUDA:
         Q.cuda()
         Qtarget.cuda()
@@ -187,7 +187,7 @@ def dqn_learing(
         #####
         frm_idx = replay_buffer.store_frame(last_obs)
         last_obs_encoded = replay_buffer.encode_recent_observation()
-        action = select_epilson_greedy_action(Q, last_obs_encoded, t)
+        action = select_epilson_greedy_action(Q, last_obs_encoded, t)[0, 0]
         last_obs, reward, done, info = env.step(action.item())
         if done:
             last_obs = env.reset()
@@ -213,25 +213,36 @@ def dqn_learing(
             # next observations, and done indicator).
             # Note: Move the variables to the GPU if avialable
                     obs_batch, act_batch, rew_batch, next_obs_batch, done_mask = replay_buffer.sample(batch_size)
-                    act_batch = torch.from_numpy(act_batch)
-                    rew_batch = torch.from_numpy(rew_batch)
-                    next_obs_batch = torch.from_numpy(next_obs_batch)
-                    done_mask = torch.from_numpy(done_mask)
+                    # obs_batch = Variable(torch.from_numpy(obs_batch).type(dtype) / 255.0)
+                    # act_batch = Variable(torch.from_numpy(act_batch).long())
+                    # rew_batch = Variable(torch.from_numpy(rew_batch).type(dtype) )
+                    # next_obs_batch = Variable(torch.from_numpy(next_obs_batch).type(dtype) /255.0)
+                    # done_mask = Variable(torch.from_numpy(done_mask).type(dtype))
+                    obs_batch = torch.from_numpy(act_batch).type(dtype)/255.0
+                    act_batch = torch.from_numpy(act_batch).long()
+                    rew_batch = torch.from_numpy(rew_batch).type(dtype)
+                    next_obs_batch = torch.from_numpy(next_obs_batch).type(dtype)/255.0
+                    done_mask = torch.from_numpy(done_mask).type(dtype)
+
                     if USE_CUDA:
-                        obs_batch.cuda()
                         act_batch.cuda()
                         rew_batch.cuda()
-                        next_obs_batch.cuda()
-                        done_mask.cuda()
-                    Q_output = Q(obs_batch)
-                    _, Qtarget_output = torch.max(Qtarget(obs_batch), dim=1)
+                    # Q_output = Q(obs_batch)
+                    # _, Qtarget_output = torch.max(Qtarget(obs_batch), dim=1)
 
         # 3.b: fill in your own code to compute the Bellman error. This requires
             # evaluating the current and next Q-values and constructing the corresponding error.
             # Note: don't forget to clip the error between [-1,1], multiply is by -1 (since pytorch minimizes) and
             #       maskout post terminal status Q-values (see ReplayBuffer code).
+                    current_Q_values = Q(obs_batch).gather(1, act_batch.unsqueeze(1))
+                    next_max_q = Qtarget(next_obs_batch).detach().max(1)[0]
+                    next_Q_values = next_max_q if not done_mask else 0
+                    target_Q_values = rew_batch + (gamma * next_Q_values)
+                    bellman_error = target_Q_values - current_Q_values
+                    clipped_bellman_error = -1.0*bellman_error.clamp(-1, 1)
 
-            # 3.c: train the model. To do this, use the bellman error you calculated perviously.
+
+                        # 3.c: train the model. To do this, use the bellman error you calculated perviously.
             # Pytorch will differentiate this error for you, to backward the error use the following API:
             #       current.backward(d_error.data.unsqueeze(1))
             # Where "current" is the variable holding current Q Values and d_error is the clipped bellman error.
@@ -245,8 +256,13 @@ def dqn_learing(
             #####
 
             # YOUR CODE HERE
-
-            #####
+                    optimizer.zero_grad()
+                    current_Q_values.backward(clipped_bellman_error.data.unsqueeze(1))
+                    optimizer.step()
+                    num_param_updates += 1
+                    if num_param_updates % target_update_freq == 0:
+                        Qtarget.load_state_dict(Q.state_dict())
+        #####
 
         ### 4. Log progress and keep track of statistics
         episode_rewards = get_wrapper_by_name(env, "Monitor").get_episode_rewards()
