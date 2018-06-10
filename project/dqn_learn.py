@@ -295,7 +295,12 @@ def dqn_learing(
             sys.stdout.flush()
 
             # Dump statistics to pickle
-            pickle_path = os.path.join(experiment_path, 'statistics.pkl')
+            # Store last results in main directory and the experiment results in corresponding directory
+            pickle_filename = 'statistics.pkl'
+            pickle_path = os.path.join(experiment_path, pickle_filename)
+            with open(pickle_filename, 'wb') as f:
+                pickle.dump(Statistic, f)
+                print("Saved to %s" % pickle_filename)
             with open(pickle_path, 'wb') as f:
                 pickle.dump(Statistic, f)
                 print("Saved to %s" % pickle_path)

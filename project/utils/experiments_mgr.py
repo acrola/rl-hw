@@ -73,7 +73,6 @@ def extract_experiment_factors(argv):
 
 
 def format_experiment_arg(param_name, param_val):
-
     if is_integer(param_val):
         val = param_val
     elif is_float(param_val):
@@ -96,11 +95,15 @@ def create_experiment(args, experiment_factors):
         if param_name in experiment_factors:
             experiment_name += format_experiment_arg(param_name, param_val)
 
-    return config, experiment_name[1:]
+    experiment_name = experiment_name[1:] if experiment_name != '' else 'default'
+
+    return config, experiment_name
 
 
-def parse_args():
-
+def start_experiments_generator():
+    """
+    :return: Generator that generates experiments according to arguments given to program. May also randomize values.
+    """
     BATCH_SIZE = 32
     GAMMA = 0.99
     REPLAY_BUFFER_SIZE = 1000000

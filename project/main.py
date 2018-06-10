@@ -5,7 +5,7 @@ from dqn_model import DQN
 from dqn_learn import OptimizerSpec, dqn_learing
 from utils.gym import get_env, get_wrapper_by_name
 from utils.schedule import LinearSchedule
-from utils.experiments_mgr import parse_args
+from utils.experiments_mgr import start_experiments_generator
 
 # Program parameters are set via the experiments_mgr
 # (to support custom arguments and sampling from ranges)
@@ -44,7 +44,7 @@ def main(env, num_timesteps, experiment_config, experiment_name):
 
 if __name__ == '__main__':
 
-    experiments_generator = parse_args()
+    experiments_generator = start_experiments_generator()
 
     # Get Atari games.
     benchmark = gym.benchmark_spec('Atari40M')
