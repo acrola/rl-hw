@@ -41,6 +41,7 @@ Statistic = {
 }
 
 def dqn_learing(
+    experiment_name,
     env,
     q_func,
     optimizer_spec,
@@ -53,7 +54,7 @@ def dqn_learing(
     learning_freq=4,
     frame_history_len=4,
     target_update_freq=10000,
-    models_path='models'
+    output_path='.'
     ):
 
     """Run Deep Q-learning algorithm.
@@ -64,6 +65,8 @@ def dqn_learing(
 
     Parameters
     ----------
+    experiment_name: str
+        Identifier for storing the experiments results. Defined by the custom parameter values of the experiment.
     env: gym.Env
         gym environment to train on.
     q_func: function
@@ -96,6 +99,8 @@ def dqn_learing(
     target_update_freq: int
         How many experience replay rounds (not steps!) to perform between
         each update to the target Q network
+    output_path: str
+        A path on disk where trained models and experiment statistics are stored
     """
     assert type(env.observation_space) == gym.spaces.Box
     assert type(env.action_space)      == gym.spaces.Discrete
@@ -147,11 +152,17 @@ def dqn_learing(
     best_mean_episode_reward = -float('inf')
     last_obs = env.reset()
     LOG_EVERY_N_STEPS = 10000
-    # STORE_EVERY_N_STEPS = 250000
-    STORE_EVERY_N_STEPS = 300
+    STORE_EVERY_N_STEPS = 250000
 
+    experiment_path = os.path.join(output_path,experiment_name)
+    models_path = os.path.join(experiment_path, 'models')
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+    if not os.path.exists(experiment_path):
+        os.mkdir(experiment_path)
     if not os.path.exists(models_path):
         os.mkdir(models_path)
+
 
     for t in count():
         ### 1. Check stopping criterion
@@ -269,7 +280,7 @@ def dqn_learing(
             best_mean_episode_reward = max(best_mean_episode_reward, mean_episode_reward)
 
         if t % STORE_EVERY_N_STEPS == 0 and t > 0:
-            q_output_path = models_path + os.sep + 'DQN_' + str(t) + '_steps'
+            q_output_path = models_path + os.sep + 'DQN_' + str(t) + '_steps.pt'
             torch.save(Q, q_output_path)
 
         Statistic["mean_episode_rewards"].append(mean_episode_reward)
@@ -284,6 +295,7 @@ def dqn_learing(
             sys.stdout.flush()
 
             # Dump statistics to pickle
-            with open('statistics.pkl', 'wb') as f:
+            pickle_path = os.path.join(experiment_path, 'statistics.pkl')
+            with open(pickle_path, 'wb') as f:
                 pickle.dump(Statistic, f)
-                print("Saved to %s" % 'statistics.pkl')
+                print("Saved to %s" % pickle_path)
