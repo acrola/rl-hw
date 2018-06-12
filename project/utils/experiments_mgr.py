@@ -121,7 +121,7 @@ def start_experiments_generator():
     parser.add_argument('-repeat', metavar='AMOUNT', nargs='?', type=int,
                         default=1, help='Amount of times to repeat each experiment')
     parser.add_argument('-max_steps', metavar='STEPS', nargs=1, type=int,
-                        default=5_000_000, help='Number of steps applied to each experiment. Defaults to 5 million.')
+                        default=40000000, help='Number of steps applied to each experiment. Defaults to 5 million.')
     parser.add_argument('-lr', metavar='LEARNING_RATE', nargs='+', type=float,
                         default=LEARNING_RATE, help='Learning rate value OR range: min max')
     parser.add_argument('-batch', metavar='BATCH_SIZE', nargs='+', type=int,
