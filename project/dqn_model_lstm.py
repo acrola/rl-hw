@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+# from dqn_learn import Variable
 
 
 def norm_col_init(weights, std=1.0):
@@ -64,7 +65,10 @@ class DQN(torch.nn.Module):
         self.train()
 
     def forward(self, inputs):
-        inputs, (hx, cx) = inputs
+        # inputs, (hx, cx) = inputs
+        cx = Variable(torch.zeros(1, 512))
+        hx = Variable(torch.zeros(1, 512))
+
         x = F.relu(self.maxp1(self.conv1(inputs)))
         x = F.relu(self.maxp2(self.conv2(x)))
         x = F.relu(self.maxp3(self.conv3(x)))

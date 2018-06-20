@@ -1,7 +1,6 @@
 import gym
 import torch.optim as optim
 
-from dqn_model import DQN
 from dqn_learn import OptimizerSpec, dqn_learing
 from utils.gym import get_env, get_wrapper_by_name
 from utils.schedule import LinearSchedule
@@ -11,6 +10,10 @@ from utils.experiments_mgr import start_experiments_generator
 # (to support custom arguments and sampling from ranges)
 
 def main(env, num_timesteps, experiment_config, experiment_name):
+    if experiment_config['adv_model']:
+        from dqn_model_lrelu import DQN
+    else:
+        from dqn_model import DQN
 
     def stopping_criterion(env):
         # notice that here t is the number of steps of the wrapped env,
@@ -22,7 +25,7 @@ def main(env, num_timesteps, experiment_config, experiment_name):
         kwargs=dict(lr=experiment_config['lr'], alpha=experiment_config['alpha'], eps=experiment_config['eps']),
     )
 
-    exploration_schedule = LinearSchedule(1000000, 0.1)
+    exploration_schedule = LinearSchedule(1000000, experiment_config['min_eps'])
 
     dqn_learing(
         experiment_name=experiment_name,

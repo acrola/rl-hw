@@ -5,28 +5,34 @@ import numpy as np
 
 os.chdir("/home/lior/PycharmProjects/rl-hw/project")
 
-with open(os.path.join('.', "experiments", 'default', "statistics.pkl"), "rb") as f:
-	# for key, val in pickle.load(f).items():
-	# 	print("{} {}".format(key, val))
+with open(os.path.join('.', "experiments", 'adv_model_0.0000', "statistics.pkl"), "rb") as f:
 	unpickler = pickle.Unpickler(f)
-	scores = unpickler.load()
-	# steps = np.arange(len(pickle.load(f).items()['mean_episode_rewards']))
-	# mean_episode_rewards = pickle.load(f).items()['mean_episode_rewards']
-	# best_mean_episode_rewards = pickle.load(f).items()['best_mean_episode_rewards']
-steps = np.arange(len(scores['mean_episode_rewards']))
-mean_episode_rewards = scores['mean_episode_rewards']
-best_mean_episode_rewards = scores['best_mean_episode_rewards']
+	scores_1 = unpickler.load()
+with open(os.path.join('.', "experiments", 'adv_model_1.0000', "statistics.pkl"), "rb") as f:
+	unpickler = pickle.Unpickler(f)
+	scores_2 = unpickler.load()
+
+leng = min(len(scores_1['mean_episode_rewards']),len(scores_2['mean_episode_rewards']))
+steps = np.arange(leng)
+mean_episode_rewards_1 = scores_1['mean_episode_rewards'][:leng]
+best_mean_episode_rewards_1 = scores_1['best_mean_episode_rewards'][:leng]
+mean_episode_rewards_2 = scores_2['mean_episode_rewards'][:leng]
+best_mean_episode_rewards_2 = scores_2['best_mean_episode_rewards'][:leng]
 legend = []
 plt.figure(2)
-plt.plot(steps, mean_episode_rewards, 'b')
-legend.append('mean episode rewards')
-plt.plot(steps, best_mean_episode_rewards, 'g')
-legend.append('best mean episode rewards')
+plt.plot(steps, mean_episode_rewards_1, 'b')
+legend.append('mean episode rewards for given DNN')
+plt.plot(steps, best_mean_episode_rewards_1, 'r')
+legend.append('best mean episode rewards for given DNN')
+plt.plot(steps, mean_episode_rewards_2, 'g')
+legend.append('mean episode rewards for our DNN')
+plt.plot(steps, best_mean_episode_rewards_2, 'c')
+legend.append('best mean episode rewards for our DNN')
 
-plt.legend(legend, loc=2)
-plt.xscale('log')
+plt.legend(legend, loc=4)
+# plt.xscale('log')
 plt.xlabel('Step')
 plt.ylabel('Reward')
-plt.title('Time Steps vs. Rewards')
-img_save = 'Project_Q1'
+plt.title('Time Steps vs. Rewards, different model for Pong (game 3)')
+img_save = 'Project_Q2_adv_model_game_3'
 plt.savefig(img_save)

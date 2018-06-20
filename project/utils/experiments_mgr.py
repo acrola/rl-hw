@@ -99,6 +99,13 @@ def create_experiment(args, experiment_factors):
 
     return config, experiment_name
 
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 def start_experiments_generator():
     """
@@ -110,14 +117,17 @@ def start_experiments_generator():
     LEARNING_STARTS = 50000
     LEARNING_FREQ = 4
     FRAME_HISTORY_LEN = 4
-    TARGER_UPDATE_FREQ = 10000
+    TARGET_UPDATE_FREQ = 10000
     LEARNING_RATE = 0.00025
     ALPHA = 0.95
     EPS = 0.01
+    MIN_EPS = 0.1
     OUTPUT_PATH = 'experiments'
 
     parser = argparse.ArgumentParser(description='Train DQN for playing Pong.\n' + \
                                                  'Set hyperparameters with single values or range to sample from.')
+    parser.add_argument('-adv_model', metavar='ADVANCED_MODEL', nargs='?', type=str2bool,
+                        default='False', help='Using advanced ConvNet model with LeakyReLU activations and dropout instead.')
     parser.add_argument('-repeat', metavar='AMOUNT', nargs='?', type=int,
                         default=1, help='Amount of times to repeat each experiment')
     parser.add_argument('-max_steps', metavar='STEPS', nargs=1, type=int,
@@ -137,12 +147,14 @@ def start_experiments_generator():
     parser.add_argument('-frame_hist', metavar='FRAME_HISTORY_LEN', nargs='+', type=int,
                         default=FRAME_HISTORY_LEN, help='How many frames back in history each sample contains')
     parser.add_argument('-target_update_freq', metavar='STEPS_FREQ', nargs='+', type=int,
-                        default=TARGER_UPDATE_FREQ, help='Learning frequency: How often Qtarget network is updated to Q')
+                        default=TARGET_UPDATE_FREQ, help='Learning frequency: How often Qtarget network is updated to Q')
     parser.add_argument('-alpha', metavar='ALPHA', nargs='+', type=float,
                         default=ALPHA, help='Hyperparameter for RMSProp optimizer: smoothing constant')
     parser.add_argument('-eps', metavar='EPS', nargs='+', type=float,
                         default=EPS, help='Hyperparameter for RMSProp optimizer: ' + \
                                           'term added to the denominator to improve numerical stability')
+    parser.add_argument('-min_eps', metavar='MIN_EPS', nargs='+', type=float,
+                        default=MIN_EPS, help='Hyperparameter for determing the minimal exploration rate.')
     parser.add_argument('-seed', metavar='SEED VALUE', nargs=1, type=int,
                         default=0, help='Seed value used for randomization')
     parser.add_argument('-game', metavar='GAME ID', nargs=1, type=int,
