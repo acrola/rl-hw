@@ -5,15 +5,16 @@ from dqn_learn import OptimizerSpec, dqn_learing
 from utils.gym import get_env, get_wrapper_by_name
 from utils.schedule import LinearSchedule
 from utils.experiments_mgr import start_experiments_generator
+from dqn_model_lrelu import DQNLRelu
+from dqn_model import DQN
+
 
 # Program parameters are set via the experiments_mgr
 # (to support custom arguments and sampling from ranges)
 
 def main(env, num_timesteps, experiment_config, experiment_name):
-    if experiment_config['adv_model']:
-        from dqn_model_lrelu import DQN
-    else:
-        from dqn_model import DQN
+
+    q_func = DQNLRelu if experiment_config['adv_model'] else DQN
 
     def stopping_criterion(env):
         # notice that here t is the number of steps of the wrapped env,
@@ -30,7 +31,7 @@ def main(env, num_timesteps, experiment_config, experiment_name):
     dqn_learing(
         experiment_name=experiment_name,
         env=env,
-        q_func=DQN,
+        q_func=q_func,
         optimizer_spec=optimizer_spec,
         exploration=exploration_schedule,
         stopping_criterion=stopping_criterion,

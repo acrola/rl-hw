@@ -43,7 +43,7 @@ def is_integer(obj):
     :return: True if int in string representation
     '''
     try:
-        obj.isdigit()
+        isinstance(obj, int) or obj.isdigit()
         return True
     except AttributeError:
         return False
@@ -73,12 +73,14 @@ def extract_experiment_factors(argv):
 
 
 def format_experiment_arg(param_name, param_val):
-    if is_integer(param_val):
-        val = param_val
+    if isinstance(param_val, bool):
+        val = "True" if param_val else "False"
+    elif is_integer(param_val):
+        val = str(param_val)
     elif is_float(param_val):
         val = "{:.4f}".format(param_val)
     else:
-        val = param_val
+        val = str(param_val)
 
     str_rep = '_' + param_name + '_' + val
     return str_rep
@@ -127,7 +129,7 @@ def start_experiments_generator():
     parser = argparse.ArgumentParser(description='Train DQN for playing Pong.\n' + \
                                                  'Set hyperparameters with single values or range to sample from.')
     parser.add_argument('-adv_model', metavar='ADVANCED_MODEL', nargs='?', type=str2bool,
-                        default='False', help='Using advanced ConvNet model with LeakyReLU activations and dropout instead.')
+                        default='False', help='Uses an advanced ConvNet model with LeakyReLU activations and dropout instead.')
     parser.add_argument('-repeat', metavar='AMOUNT', nargs='?', type=int,
                         default=1, help='Amount of times to repeat each experiment')
     parser.add_argument('-max_steps', metavar='STEPS', nargs=1, type=int,
